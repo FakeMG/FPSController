@@ -5,10 +5,16 @@ using UnityEngine;
 public class Movement : MonoBehaviour {
 
     public bool CanMove { get; private set; } = true;
+    public bool IsSprinting => canSprint && Input.GetKey(sprintKey);
 
     [Header("Movement Parameters")]
     [SerializeField] private float walkSpeed = 3.0f;
     [SerializeField] private float gravity = 30.0f;
+
+    [Header("Sprint")]
+    [SerializeField] private bool canSprint = true;
+    [SerializeField] private float sprintSpeed = 6.0f;
+    [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
 
     [Header("Look Parameters")]
     [SerializeField, Range(1, 10)] private float lookSpeedX = 2.0f;
@@ -22,6 +28,7 @@ public class Movement : MonoBehaviour {
     private Vector3 moveDirection;
     private Vector2 currentInput;
 
+    private float currentSpeed;
     private float cameraRotationX = 0;
 
     void Awake() {
@@ -34,19 +41,40 @@ public class Movement : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         if (CanMove) {
+            ControlSpeed();
             HandleMovementInput();
+            LimitDiagonalMovement();
+
             HandleMouseLook();
 
             ApplyFinalMovement();
         }
+
+        Debug.Log(Mathf.Sqrt(currentInput.x * currentInput.x + currentInput.y * currentInput.y));
+    }
+
+    private void ControlSpeed() {
+        if (IsSprinting) {
+            currentSpeed = sprintSpeed;
+        } else {
+            currentSpeed = walkSpeed;
+        }
     }
 
     private void HandleMovementInput() {
-        currentInput = new Vector2(walkSpeed * Input.GetAxis("Vertical"), walkSpeed * Input.GetAxis("Horizontal"));
+        currentInput = new Vector2(currentSpeed * Input.GetAxis("Vertical"), currentSpeed * Input.GetAxis("Horizontal"));
 
         float moveDirectionY = moveDirection.y;
         moveDirection = transform.TransformDirection(Vector3.forward) * currentInput.x + transform.TransformDirection(Vector3.right) * currentInput.y;
         moveDirection.y = moveDirectionY;
+    }
+
+    private void LimitDiagonalMovement() {
+        if (currentInput.x != 0 && currentInput.y != 0) {
+            float speed = Mathf.Sqrt((currentSpeed * currentSpeed) / 2);
+            currentInput.x = Mathf.Clamp(currentInput.x, -speed, speed);
+            currentInput.y = Mathf.Clamp(currentInput.y, -speed, speed);
+        }
     }
 
     private void HandleMouseLook() {
