@@ -415,6 +415,16 @@ MonoBehaviour:
   canSprint: 1
   sprintSpeed: 8
   sprintKey: 304
+  canJump: 1
+  jumpForce: 8
+  jumpKey: 32
+  canCrouch: 1
+  crouchHeight: 0.5
+  standHeight: 2
+  timeToCrouch: 0.15
+  standCenter: {x: 0, y: 0, z: 0}
+  crouchCenter: {x: 0, y: 0.5, z: 0}
+  crouchKey: 306
   lookSpeedX: 2
   lookSpeedY: 2
   upperLookLimit: 80

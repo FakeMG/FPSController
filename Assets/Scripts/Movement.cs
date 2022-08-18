@@ -12,15 +12,26 @@ public class Movement : MonoBehaviour {
     [SerializeField] private float walkSpeed = 3.0f;
     [SerializeField] private float gravity = 30.0f;
 
-    [Header("Sprint")]
+    [Header("Sprint Parameters")]
     [SerializeField] private bool canSprint = true;
     [SerializeField] private float sprintSpeed = 6.0f;
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
 
-    [Header("Jump")]
+    [Header("Jump Parameters")]
     [SerializeField] private bool canJump = true;
     [SerializeField] private float jumpForce = 8.0f;
     [SerializeField] private KeyCode jumpKey = KeyCode.Space;
+
+    [Header("Crouch Parameters")]
+    [SerializeField] private bool canCrouch = true;
+    [SerializeField] private float crouchHeight = 0.5f;
+    [SerializeField] private float standHeight = 2f;
+    [SerializeField] private float timeToCrouch = 0.25f;
+    [SerializeField] private Vector3 standCenter = new Vector3(0, 0, 0);
+    [SerializeField] private Vector3 crouchCenter = new Vector3(0, 0.5f, 0);
+    [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
+    private bool isCrouching = false;
+    private Coroutine crouchCoroutine;
 
     [Header("Look Parameters")]
     [SerializeField, Range(1, 10)] private float lookSpeedX = 2.0f;
@@ -50,8 +61,13 @@ public class Movement : MonoBehaviour {
             ControlSpeed();
             HandleMovementInput();
             LimitDiagonalSpeed();
+
             if (canJump) {
                 HandleJump();
+            }
+
+            if (canCrouch) {
+                HandleCrouch();
             }
 
             HandleMouseLook();
@@ -86,8 +102,37 @@ public class Movement : MonoBehaviour {
 
     private void HandleJump() {
         if (ShouldJump) {
-            Debug.Log("jump");
             moveDirection.y = jumpForce;
+        }
+    }
+
+    private void HandleCrouch() {
+        if (Input.GetKeyDown(crouchKey) || Input.GetKeyUp(crouchKey)) {
+            isCrouching = !isCrouching;
+
+            if (crouchCoroutine != null) {
+                StopCoroutine(crouchCoroutine);
+            }
+
+            crouchCoroutine = StartCoroutine(CrouchStand());
+        }
+    }
+
+
+    private IEnumerator CrouchStand() {
+        float timeElapsed = 0f;
+
+        float targetHeight = isCrouching ? crouchHeight : standHeight;
+        float currentHeight = characterController.height;
+
+        Vector3 targetCenter = isCrouching ? crouchCenter : standCenter;
+        Vector3 currentCenter = characterController.center;
+
+        while (timeElapsed < timeToCrouch) {
+            characterController.height = Mathf.Lerp(currentHeight, targetHeight, timeElapsed / timeToCrouch);
+            characterController.center = Vector3.Lerp(currentCenter, targetCenter, timeElapsed / timeToCrouch);
+            timeElapsed += Time.deltaTime;
+            yield return null;
         }
     }
 
