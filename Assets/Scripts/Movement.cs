@@ -6,6 +6,7 @@ public class Movement : MonoBehaviour {
 
     public bool CanMove { get; private set; } = true;
     public bool IsSprinting => canSprint && Input.GetKey(sprintKey);
+    public bool ShouldJump => Input.GetKeyDown(jumpKey) && characterController.isGrounded;
 
     [Header("Movement Parameters")]
     [SerializeField] private float walkSpeed = 3.0f;
@@ -15,6 +16,11 @@ public class Movement : MonoBehaviour {
     [SerializeField] private bool canSprint = true;
     [SerializeField] private float sprintSpeed = 6.0f;
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
+
+    [Header("Jump")]
+    [SerializeField] private bool canJump = true;
+    [SerializeField] private float jumpForce = 8.0f;
+    [SerializeField] private KeyCode jumpKey = KeyCode.Space;
 
     [Header("Look Parameters")]
     [SerializeField, Range(1, 10)] private float lookSpeedX = 2.0f;
@@ -43,14 +49,15 @@ public class Movement : MonoBehaviour {
         if (CanMove) {
             ControlSpeed();
             HandleMovementInput();
-            LimitDiagonalMovement();
+            LimitDiagonalSpeed();
+            if (canJump) {
+                HandleJump();
+            }
 
             HandleMouseLook();
 
             ApplyFinalMovement();
         }
-
-        Debug.Log(Mathf.Sqrt(currentInput.x * currentInput.x + currentInput.y * currentInput.y));
     }
 
     private void ControlSpeed() {
@@ -69,11 +76,18 @@ public class Movement : MonoBehaviour {
         moveDirection.y = moveDirectionY;
     }
 
-    private void LimitDiagonalMovement() {
+    private void LimitDiagonalSpeed() {
         if (currentInput.x != 0 && currentInput.y != 0) {
             float speed = Mathf.Sqrt((currentSpeed * currentSpeed) / 2);
             currentInput.x = Mathf.Clamp(currentInput.x, -speed, speed);
             currentInput.y = Mathf.Clamp(currentInput.y, -speed, speed);
+        }
+    }
+
+    private void HandleJump() {
+        if (ShouldJump) {
+            Debug.Log("jump");
+            moveDirection.y = jumpForce;
         }
     }
 
