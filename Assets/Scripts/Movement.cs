@@ -24,6 +24,7 @@ public class Movement : MonoBehaviour {
 
     [Header("Crouch Parameters")]
     [SerializeField] private bool canCrouch = true;
+    [SerializeField] private float crouchSpeed = 1.0f;
     [SerializeField] private float crouchHeight = 0.5f;
     [SerializeField] private float standHeight = 2f;
     [SerializeField] private float timeToCrouch = 0.25f;
@@ -82,6 +83,10 @@ public class Movement : MonoBehaviour {
         } else {
             currentSpeed = walkSpeed;
         }
+
+        if (isCrouching) {
+            currentSpeed = crouchSpeed;
+        }
     }
 
     private void HandleMovementInput() {
@@ -107,19 +112,22 @@ public class Movement : MonoBehaviour {
     }
 
     private void HandleCrouch() {
-        if (Input.GetKeyDown(crouchKey) || Input.GetKeyUp(crouchKey)) {
-            isCrouching = !isCrouching;
+        if (Input.GetKeyDown(crouchKey) || Input.GetKeyUp(crouchKey) || (!Input.GetKey(crouchKey) && isCrouching)) {
+            if (!Physics.Raycast(playerCamera.transform.position, Vector3.up, 1f)) {
 
-            if (crouchCoroutine != null) {
-                StopCoroutine(crouchCoroutine);
+                if (crouchCoroutine != null) {
+                    StopCoroutine(crouchCoroutine);
+                }
+
+                crouchCoroutine = StartCoroutine(CrouchOrStand());
             }
-
-            crouchCoroutine = StartCoroutine(CrouchStand());
         }
     }
 
 
-    private IEnumerator CrouchStand() {
+    private IEnumerator CrouchOrStand() {
+        isCrouching = !isCrouching;
+
         float timeElapsed = 0f;
 
         float targetHeight = isCrouching ? crouchHeight : standHeight;
