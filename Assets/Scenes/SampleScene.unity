@@ -508,7 +508,7 @@ MonoBehaviour:
   walkSpeed: 3
   gravity: 30
   canSprint: 1
-  sprintSpeed: 6
+  sprintSpeed: 5
   sprintKey: 304
   canJump: 1
   jumpForce: 8
@@ -523,7 +523,7 @@ MonoBehaviour:
   crouchKey: 306
   canHeadbob: 1
   headbobTriggerSpeed: 1
-  walkHeadbobSpeed: 10
+  walkHeadbobSpeed: 8
   walkHeadbobAmount: 0.015
   sprintHeadbobSpeed: 11
   sprintHeadbobAmount: 0.025

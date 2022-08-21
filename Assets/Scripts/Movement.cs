@@ -5,7 +5,7 @@ using UnityEngine;
 public class Movement : MonoBehaviour {
 
     public bool CanMove { get; private set; } = true;
-    public bool IsSprinting => canSprint && Input.GetKey(sprintKey);
+    public bool IsSprinting => canSprint && Input.GetKey(sprintKey) && currentInput.x > 0.1f;
     public bool ShouldJump => Input.GetKeyDown(jumpKey) && characterController.isGrounded;
 
     [Header("Movement Parameters")]
