@@ -505,21 +505,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 604ada5697c51b646ac2a63cbc0cbb2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  walkSpeed: 4
+  walkSpeed: 3
   gravity: 30
   canSprint: 1
-  sprintSpeed: 8
+  sprintSpeed: 6
   sprintKey: 304
   canJump: 1
   jumpForce: 8
   jumpKey: 32
   canCrouch: 1
+  crouchSpeed: 1
   crouchHeight: 0.5
   standHeight: 2
   timeToCrouch: 0.15
   standCenter: {x: 0, y: 0, z: 0}
   crouchCenter: {x: 0, y: 0.5, z: 0}
   crouchKey: 306
+  canHeadbob: 1
+  headbobTriggerSpeed: 1
+  walkHeadbobSpeed: 10
+  walkHeadbobAmount: 0.015
+  sprintHeadbobSpeed: 11
+  sprintHeadbobAmount: 0.025
+  crouchHeadbobSpeed: 8
+  crouchHeadbobAmount: 0.01
   lookSpeedX: 2
   lookSpeedY: 2
   upperLookLimit: 80

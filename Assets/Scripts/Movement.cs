@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -34,6 +34,18 @@ public class Movement : MonoBehaviour {
     private bool isCrouching = false;
     private Coroutine crouchCoroutine;
 
+    [Header("Headbob Parameters")]
+    [SerializeField] private bool canHeadbob = true;
+    [SerializeField] private float headbobTriggerSpeed = 1f;
+    [SerializeField] private float walkHeadbobSpeed = 10f;
+    [SerializeField] private float walkHeadbobAmount = 0.015f;
+    [SerializeField] private float sprintHeadbobSpeed = 18;
+    [SerializeField] private float sprintHeadbobAmount = 0.1f;
+    [SerializeField] private float crouchHeadbobSpeed = 8f;
+    [SerializeField] private float crouchHeadbobAmount = 0.025f;
+    private Vector3 defaultCameraLocalPos;
+    private float headbobTimer = 0f;
+
     [Header("Look Parameters")]
     [SerializeField, Range(1, 10)] private float lookSpeedX = 2.0f;
     [SerializeField, Range(1, 10)] private float lookSpeedY = 2.0f;
@@ -54,6 +66,8 @@ public class Movement : MonoBehaviour {
         characterController = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        defaultCameraLocalPos = playerCamera.transform.localPosition;
     }
 
     // Update is called once per frame
@@ -74,6 +88,15 @@ public class Movement : MonoBehaviour {
             HandleMouseLook();
 
             ApplyFinalMovement();
+        }
+    }
+
+    private void LateUpdate() {
+        if (CanMove) {
+            if (canHeadbob) {
+                HandleHeadbob();
+                ResetHeadbob();
+            }
         }
     }
 
@@ -124,7 +147,6 @@ public class Movement : MonoBehaviour {
         }
     }
 
-
     private IEnumerator CrouchOrStand() {
         isCrouching = !isCrouching;
 
@@ -141,6 +163,41 @@ public class Movement : MonoBehaviour {
             characterController.center = Vector3.Lerp(currentCenter, targetCenter, timeElapsed / timeToCrouch);
             timeElapsed += Time.deltaTime;
             yield return null;
+        }
+    }
+
+    private void HandleHeadbob() {
+        if (!characterController.isGrounded)
+            return;
+
+        if (Mathf.Abs(moveDirection.x) > headbobTriggerSpeed || Mathf.Abs(moveDirection.z) > headbobTriggerSpeed) {
+            playerCamera.transform.localPosition = new Vector3(
+                defaultCameraLocalPos.x + HeadBobMotion().x,
+                defaultCameraLocalPos.y + HeadBobMotion().y,
+                playerCamera.transform.localPosition.z);
+        }
+    }
+
+    private Vector3 HeadBobMotion() {
+        Vector3 pos = Vector3.zero;
+        //làm headbob mượt hơn
+        headbobTimer += Time.deltaTime;
+
+        pos.y = Mathf.Sin(headbobTimer * (isCrouching ? crouchHeadbobSpeed : IsSprinting ? sprintHeadbobSpeed : walkHeadbobSpeed))
+            * (isCrouching ? crouchHeadbobAmount : IsSprinting ? sprintHeadbobAmount : walkHeadbobAmount);
+        pos.x = Mathf.Sin(headbobTimer * (isCrouching ? crouchHeadbobSpeed : IsSprinting ? sprintHeadbobSpeed : walkHeadbobSpeed) / 2)
+            * (isCrouching ? crouchHeadbobAmount : IsSprinting ? sprintHeadbobAmount : walkHeadbobAmount)
+            * 2;
+        return pos;
+    }
+
+    private void ResetHeadbob() {
+        if (playerCamera.transform.localPosition == defaultCameraLocalPos)
+            return;
+
+        if (Mathf.Abs(moveDirection.x) < headbobTriggerSpeed && Mathf.Abs(moveDirection.z) < headbobTriggerSpeed) {
+            playerCamera.transform.localPosition = Vector3.Lerp(playerCamera.transform.localPosition, defaultCameraLocalPos, 2 * Time.deltaTime);
+            headbobTimer = 0;
         }
     }
 
