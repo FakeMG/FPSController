@@ -14,7 +14,7 @@ public class Movement : MonoBehaviour {
 
     [Header("Sprint Parameters")]
     [SerializeField] private bool canSprint = true;
-    [SerializeField] private float sprintSpeed = 6.0f;
+    [SerializeField] private float sprintSpeed = 5.0f;
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
 
     [Header("Jump Parameters")]
@@ -31,6 +31,7 @@ public class Movement : MonoBehaviour {
     [SerializeField] private Vector3 standCenter = new Vector3(0, 0, 0);
     [SerializeField] private Vector3 crouchCenter = new Vector3(0, 0.5f, 0);
     [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
+    [SerializeField] private Transform ceilingCheck;
     private bool isCrouching = false;
     private Coroutine crouchCoroutine;
 
@@ -136,12 +137,11 @@ public class Movement : MonoBehaviour {
 
     private void HandleCrouch() {
         if (Input.GetKeyDown(crouchKey) || Input.GetKeyUp(crouchKey) || (!Input.GetKey(crouchKey) && isCrouching)) {
-            if (!Physics.Raycast(playerCamera.transform.position, Vector3.up, 1f)) {
+            if (!Physics.CheckBox(ceilingCheck.position, new Vector3(0.5f, 0.05f, 0.5f))) {
 
                 if (crouchCoroutine != null) {
                     StopCoroutine(crouchCoroutine);
                 }
-
                 crouchCoroutine = StartCoroutine(CrouchOrStand());
             }
         }
