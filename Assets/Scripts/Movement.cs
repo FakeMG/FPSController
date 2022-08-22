@@ -47,6 +47,22 @@ public class Movement : MonoBehaviour {
     private Vector3 defaultCameraLocalPos;
     private float headbobTimer = 0f;
 
+    [Header("Slope Parameters")]
+    [SerializeField] private bool canSlideOnSlope = true;
+    [SerializeField] private float slopeSlideSpeed = 8f;
+    private Vector3 hitPointNormal;
+    private bool IsSliding {
+        get {
+            if (characterController.isGrounded && Physics.Raycast(transform.position, Vector3.down, out RaycastHit slopeHitInfo, 2f)) {
+                hitPointNormal = slopeHitInfo.normal;
+
+                return Vector3.Angle(Vector3.up, hitPointNormal) > characterController.slopeLimit;
+            } else {
+                return false;
+            }
+        }
+    }
+
     [Header("Look Parameters")]
     [SerializeField, Range(1, 10)] private float lookSpeedX = 2.0f;
     [SerializeField, Range(1, 10)] private float lookSpeedY = 2.0f;
@@ -212,6 +228,10 @@ public class Movement : MonoBehaviour {
     private void ApplyFinalMovement() {
         if (!characterController.isGrounded) {
             moveDirection.y -= gravity * Time.deltaTime;
+        }
+
+        if (canSlideOnSlope && IsSliding) {
+            moveDirection += new Vector3(hitPointNormal.x, -hitPointNormal.y, hitPointNormal.z) * slopeSlideSpeed;
         }
 
         characterController.Move(moveDirection * Time.deltaTime);
