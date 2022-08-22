@@ -31,7 +31,6 @@ public class Movement : MonoBehaviour {
     [SerializeField] private Vector3 standCenter = new Vector3(0, 0, 0);
     [SerializeField] private Vector3 crouchCenter = new Vector3(0, 0.5f, 0);
     [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
-    [SerializeField] private Transform ceilingCheck;
     private bool isCrouching = false;
     private Coroutine crouchCoroutine;
 
@@ -153,7 +152,7 @@ public class Movement : MonoBehaviour {
 
     private void HandleCrouch() {
         if (Input.GetKeyDown(crouchKey) || Input.GetKeyUp(crouchKey) || (!Input.GetKey(crouchKey) && isCrouching)) {
-            if (!Physics.CheckBox(ceilingCheck.position, new Vector3(0.5f, 0.05f, 0.5f))) {
+            if (!Physics.Raycast(playerCamera.transform.position, Vector3.up, 1f)) {
 
                 if (crouchCoroutine != null) {
                     StopCoroutine(crouchCoroutine);
@@ -180,6 +179,9 @@ public class Movement : MonoBehaviour {
             timeElapsed += Time.deltaTime;
             yield return null;
         }
+
+        characterController.height = targetHeight;
+        characterController.center = targetCenter;
     }
 
     private void HandleHeadbob() {
