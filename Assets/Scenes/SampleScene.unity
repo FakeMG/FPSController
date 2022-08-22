@@ -1434,7 +1434,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.5
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -3646,16 +3646,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 604ada5697c51b646ac2a63cbc0cbb2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  walkSpeed: 3
-  gravity: 30
+  walkMaxSpeed: 4
+  gravity: 0.24
   canSprint: 1
-  sprintSpeed: 5
+  sprintMaxSpeed: 6
   sprintKey: 304
   canJump: 1
   jumpForce: 8
   jumpKey: 32
   canCrouch: 1
-  crouchSpeed: 1
+  crouchMaxSpeed: 1
   crouchHeight: 0.9
   standHeight: 1.9
   timeToCrouch: 0.2
@@ -3668,7 +3668,7 @@ MonoBehaviour:
   walkHeadbobAmount: 0.015
   sprintHeadbobSpeed: 11
   sprintHeadbobAmount: 0.025
-  crouchHeadbobSpeed: 8
+  crouchHeadbobSpeed: 4
   crouchHeadbobAmount: 0.01
   canSlideOnSlope: 1
   slopeSlideSpeed: 8
@@ -3688,7 +3688,7 @@ CharacterController:
   m_Enabled: 1
   serializedVersion: 2
   m_Height: 1.9
-  m_Radius: 0.5
+  m_Radius: 0.4
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08

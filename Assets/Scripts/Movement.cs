@@ -9,25 +9,25 @@ public class Movement : MonoBehaviour {
     public bool ShouldJump => Input.GetKeyDown(jumpKey) && characterController.isGrounded;
 
     [Header("Movement Parameters")]
-    [SerializeField] private float walkSpeed = 3.0f;
-    [SerializeField] private float gravity = 30.0f;
+    [SerializeField][Min(0)] private float walkMaxSpeed = 4.0f;
+    [SerializeField] private float gravity = 0.24f;
 
     [Header("Sprint Parameters")]
     [SerializeField] private bool canSprint = true;
-    [SerializeField] private float sprintSpeed = 5.0f;
+    [SerializeField][Min(0)] private float sprintMaxSpeed = 6.0f;
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
 
     [Header("Jump Parameters")]
     [SerializeField] private bool canJump = true;
-    [SerializeField] private float jumpForce = 8.0f;
+    [SerializeField][Min(0)] private float jumpForce = 8.0f;
     [SerializeField] private KeyCode jumpKey = KeyCode.Space;
 
     [Header("Crouch Parameters")]
     [SerializeField] private bool canCrouch = true;
-    [SerializeField] private float crouchSpeed = 1.0f;
-    [SerializeField] private float crouchHeight = 0.5f;
-    [SerializeField] private float standHeight = 2f;
-    [SerializeField] private float timeToCrouch = 0.25f;
+    [SerializeField][Min(0)] private float crouchMaxSpeed = 1.0f;
+    [SerializeField] private float crouchHeight = 0.9f;
+    [SerializeField] private float standHeight = 1.9f;
+    [SerializeField] private float timeToCrouch = 0.2f;
     [SerializeField] private Vector3 standCenter = new Vector3(0, 0, 0);
     [SerializeField] private Vector3 crouchCenter = new Vector3(0, 0.5f, 0);
     [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
@@ -37,12 +37,12 @@ public class Movement : MonoBehaviour {
     [Header("Headbob Parameters")]
     [SerializeField] private bool canHeadbob = true;
     [SerializeField] private float headbobTriggerSpeed = 1f;
-    [SerializeField] private float walkHeadbobSpeed = 10f;
+    [SerializeField] private float walkHeadbobSpeed = 9f;
     [SerializeField] private float walkHeadbobAmount = 0.015f;
-    [SerializeField] private float sprintHeadbobSpeed = 18;
-    [SerializeField] private float sprintHeadbobAmount = 0.1f;
-    [SerializeField] private float crouchHeadbobSpeed = 8f;
-    [SerializeField] private float crouchHeadbobAmount = 0.025f;
+    [SerializeField] private float sprintHeadbobSpeed = 11f;
+    [SerializeField] private float sprintHeadbobAmount = 0.025f;
+    [SerializeField] private float crouchHeadbobSpeed = 4f;
+    [SerializeField] private float crouchHeadbobAmount = 0.01f;
     private Vector3 defaultCameraLocalPos;
     private float headbobTimer = 0f;
 
@@ -74,7 +74,7 @@ public class Movement : MonoBehaviour {
     private Vector3 moveDirection;
     private Vector2 currentInput;
 
-    private float currentSpeed;
+    private float currentMaxSpeed;
     private float cameraRotationX = 0;
 
     void Awake() {
@@ -89,9 +89,9 @@ public class Movement : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         if (CanMove) {
-            ControlSpeed();
-            HandleMovementInput();
+            ControlMaxSpeed();
             LimitDiagonalSpeed();
+            HandleMovementDirectionInWorldSpace();
 
             if (canJump) {
                 HandleJump();
@@ -116,32 +116,52 @@ public class Movement : MonoBehaviour {
         }
     }
 
-    private void ControlSpeed() {
+    private void ControlMaxSpeed() {
         if (IsSprinting) {
-            currentSpeed = sprintSpeed;
+            currentMaxSpeed = sprintMaxSpeed;
         } else {
-            currentSpeed = walkSpeed;
+            currentMaxSpeed = walkMaxSpeed;
         }
 
         if (isCrouching) {
-            currentSpeed = crouchSpeed;
+            currentMaxSpeed = crouchMaxSpeed;
         }
-    }
-
-    private void HandleMovementInput() {
-        currentInput = new Vector2(currentSpeed * Input.GetAxis("Vertical"), currentSpeed * Input.GetAxis("Horizontal"));
-
-        float moveDirectionY = moveDirection.y;
-        moveDirection = transform.TransformDirection(Vector3.forward) * currentInput.x + transform.TransformDirection(Vector3.right) * currentInput.y;
-        moveDirection.y = moveDirectionY;
     }
 
     private void LimitDiagonalSpeed() {
+        currentInput = new Vector2(currentMaxSpeed * Input.GetAxis("Vertical"), currentMaxSpeed * Input.GetAxis("Horizontal"));
+
         if (currentInput.x != 0 && currentInput.y != 0) {
-            float speed = Mathf.Sqrt((currentSpeed * currentSpeed) / 2);
-            currentInput.x = Mathf.Clamp(currentInput.x, -speed, speed);
-            currentInput.y = Mathf.Clamp(currentInput.y, -speed, speed);
+            if (IsSprinting) {
+                float x = ValueToReduce(sprintMaxSpeed, walkMaxSpeed);
+                currentInput.x = Mathf.Clamp(currentInput.x, -(sprintMaxSpeed - x), sprintMaxSpeed - x);
+                currentInput.y = Mathf.Clamp(currentInput.y, -(walkMaxSpeed - x), walkMaxSpeed - x);
+            } else {
+                float speed = Mathf.Sqrt((currentMaxSpeed * currentMaxSpeed) / 2);
+                currentInput.x = Mathf.Clamp(currentInput.x, -speed, speed);
+                currentInput.y = Mathf.Clamp(currentInput.y, -speed, speed);
+            }
         }
+    }
+
+    // a, b > 0
+    private float ValueToReduce(float a, float b) {
+        if (b > a) {
+            float temp = a;
+            a = b;
+            b = temp;
+        }
+        float delta = Mathf.Pow(-2 * a - 2 * b, 2) - 4 * 2 * b * b;
+        float x1 = (-(-2 * a - 2 * b) + Mathf.Sqrt(delta)) / (2 * 2);
+        float x2 = (-(-2 * a - 2 * b) - Mathf.Sqrt(delta)) / (2 * 2);
+
+        return x1 < x2 ? x1 : x2;
+    }
+
+    private void HandleMovementDirectionInWorldSpace() {
+        float moveDirectionY = moveDirection.y;
+        moveDirection = transform.TransformDirection(Vector3.forward) * currentInput.x + transform.TransformDirection(Vector3.right) * currentInput.y;
+        moveDirection.y = moveDirectionY;
     }
 
     private void HandleJump() {
@@ -151,7 +171,7 @@ public class Movement : MonoBehaviour {
     }
 
     private void HandleCrouch() {
-        if (Input.GetKeyDown(crouchKey) || Input.GetKeyUp(crouchKey) || (!Input.GetKey(crouchKey) && isCrouching)) {
+        if (Input.GetKeyUp(crouchKey) || (!Input.GetKey(crouchKey) && isCrouching)) {
             if (!Physics.Raycast(playerCamera.transform.position, Vector3.up, 1f)) {
 
                 if (crouchCoroutine != null) {
@@ -159,6 +179,13 @@ public class Movement : MonoBehaviour {
                 }
                 crouchCoroutine = StartCoroutine(CrouchOrStand());
             }
+        }
+
+        if (Input.GetKeyDown(crouchKey) && !isCrouching) {
+            if (crouchCoroutine != null) {
+                StopCoroutine(crouchCoroutine);
+            }
+            crouchCoroutine = StartCoroutine(CrouchOrStand());
         }
     }
 
@@ -188,7 +215,7 @@ public class Movement : MonoBehaviour {
         if (!characterController.isGrounded)
             return;
 
-        if (Mathf.Abs(moveDirection.x) > headbobTriggerSpeed || Mathf.Abs(moveDirection.z) > headbobTriggerSpeed) {
+        if (currentPlayerSpeed() >= headbobTriggerSpeed) {
             playerCamera.transform.localPosition = new Vector3(
                 defaultCameraLocalPos.x + HeadBobMotion().x,
                 defaultCameraLocalPos.y + HeadBobMotion().y,
@@ -213,10 +240,14 @@ public class Movement : MonoBehaviour {
         if (playerCamera.transform.localPosition == defaultCameraLocalPos)
             return;
 
-        if (Mathf.Abs(moveDirection.x) < headbobTriggerSpeed && Mathf.Abs(moveDirection.z) < headbobTriggerSpeed) {
+        if (currentPlayerSpeed() < headbobTriggerSpeed) {
             playerCamera.transform.localPosition = Vector3.Lerp(playerCamera.transform.localPosition, defaultCameraLocalPos, 2 * Time.deltaTime);
             headbobTimer = 0;
         }
+    }
+
+    private float currentPlayerSpeed() {
+        return Mathf.Sqrt(moveDirection.x * moveDirection.x + moveDirection.z * moveDirection.z);
     }
 
     private void HandleMouseLook() {
@@ -229,7 +260,7 @@ public class Movement : MonoBehaviour {
 
     private void ApplyFinalMovement() {
         if (!characterController.isGrounded) {
-            moveDirection.y -= gravity * Time.deltaTime;
+            moveDirection.y -= gravity;
         }
 
         if (canSlideOnSlope && IsSliding) {
