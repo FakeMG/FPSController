@@ -3647,7 +3647,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkMaxSpeed: 4
-  gravity: 0.24
+  gravity: 30
   canSprint: 1
   sprintMaxSpeed: 6
   sprintKey: 304

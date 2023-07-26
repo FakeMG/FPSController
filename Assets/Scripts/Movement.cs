@@ -260,7 +260,7 @@ public class Movement : MonoBehaviour {
 
     private void ApplyFinalMovement() {
         if (!characterController.isGrounded) {
-            moveDirection.y -= gravity;
+            moveDirection.y -= gravity * Time.deltaTime;
         }
 
         if (canSlideOnSlope && IsSliding) {
